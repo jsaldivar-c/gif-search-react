@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { CustomHeader } from './shared/components/CustomHeader';
 import { SearchBar } from './shared/components/SearchBar';
@@ -9,20 +9,40 @@ import type { Gif } from './gifs/interfaces/gif.interface';
 import { getGifsByQuery } from './gifs/actions/get-gifs-by-query.action';
 
 export const GifsApp = () => {
-  const [previousSearch, setPreviousSearch] = useState(['gow', 'black']);
+  const [previousSearch, setPreviousSearch] = useState<string[]>([
+    'gow',
+    'ken',
+  ]);
   const [gifs, setGifs] = useState<Gif[]>([]);
-  const handleTermClicked = async (query: string) => {
-    const gifs = await getGifsByQuery(query);
-    setGifs(gifs);
-  };
-  const handleSearch = async (query: string = '') => {
-    query = query.trim().toLowerCase();
-    if (query.length === 0) return;
-    if (previousSearch.includes(query)) return;
-    setPreviousSearch([query, ...previousSearch].slice(0, 6));
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
+  const fetchGifs = useCallback(async (query: string) => {
+    const term = query.trim().toLowerCase();
+    if (term.length === 0) return;
 
-    const gifs = await getGifsByQuery(query);
-    setGifs(gifs);
+    setIsLoading(true);
+    setError(null);
+    setHasSearched(true);
+
+    try {
+      const result = await getGifsByQuery(term);
+      setGifs(result);
+    } catch {
+      setError('No pudimos cargar los gifs. Intenta de nuevo.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleSubmit = (query: string) => {
+    const term = query.trim().toLowerCase();
+    if (term.length === 0) return;
+    setPreviousSearch((prev) =>
+      [term, ...prev.filter((t) => t !== term)].slice(0, 6),
+    );
+
+    fetchGifs(term);
   };
 
   return (
@@ -32,15 +52,21 @@ export const GifsApp = () => {
         description="Descubre y comparte el gif perfecto."
       />
       <SearchBar
-        onQuery={handleSearch}
+        onQuery={fetchGifs}
+        onSubmit={handleSubmit}
         buttonText="Buscar"
         placeHolder="Buscar gifs"
       />
       <PreviousSearches
-        onLabelClicked={handleTermClicked}
+        onLabelClicked={fetchGifs}
         title="Búsquedas previas"
         searches={previousSearch}
       />
+      {isLoading && <p className="status-message">Cargando...</p>}
+      {error && <p className="status-message error">{error}</p>}
+      {hasSearched && !isLoading && !error && gifs.length === 0 && (
+        <p className="status-message">No encontramos resultados.</p>
+      )}
 
       <GifList gifs={gifs} />
     </>

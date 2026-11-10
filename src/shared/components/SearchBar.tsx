@@ -3,17 +3,19 @@ interface Props {
   placeHolder?: string;
   buttonText: string;
   onQuery: (query: string) => void;
+  onSubmit: (query: string) => void;
 }
 
 export const SearchBar = ({
   placeHolder = 'Buscar',
   buttonText,
   onQuery,
+  onSubmit,
 }: Props) => {
   const [query, setQuery] = useState('');
   const handleSearch = () => {
     if (query.trim() === '') return;
-    onQuery(query);
+    onSubmit(query);
     setQuery('');
   };
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -25,7 +27,7 @@ export const SearchBar = ({
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       onQuery(query);
-    }, 900);
+    }, 700);
     return () => {
       clearTimeout(timeoutId);
     };
