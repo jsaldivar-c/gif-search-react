@@ -95,20 +95,28 @@ export interface FixedHeight {
   hash?: string;
 }
 
-export interface Looping {}
+// CORRECCIÓN 1: interface vacía → alias de tipo.
+// "interface Looping {}" aceptaba cualquier valor (0, "", true...), por eso
+// ESLint la rechaza. La API devuelve un objeto vacío {}, y eso es justo lo
+// que expresa Record<string, never>: un objeto sin ninguna propiedad.
+export type Looping = Record<string, never>;
 
-export enum Rating {
-  G = 'g',
-  PG13 = 'pg-13',
-}
+// CORRECCIÓN 2: enum → tipo de unión de strings.
+// Tu tsconfig tiene "erasableSyntaxOnly": solo permite sintaxis que
+// desaparece al compilar. Un enum genera un objeto real en JavaScript, así
+// que no está permitido. Un tipo de unión ('g' | 'pg') existe solo en
+// TypeScript, no genera código, y se comporta igual para validar valores.
+//
+// Además amplié los valores: el código original venía de UNA respuesta de
+// ejemplo y solo conocía 'g' y 'pg-13', pero Giphy puede devolver otras
+// clasificaciones. Un tipo demasiado estrecho "miente" sobre lo que llega.
+export type Rating = 'y' | 'g' | 'pg' | 'pg-13' | 'r';
 
-export enum TrendingDatetime {
-  The00000000000000 = '0000-00-00 00:00:00',
-}
+// En la muestra solo apareció '0000-00-00 00:00:00'; en realidad es una
+// fecha en texto, así que string es lo honesto.
+export type TrendingDatetime = string;
 
-export enum Type {
-  GIF = 'gif',
-}
+export type Type = 'gif' | 'sticker';
 
 export interface User {
   avatar_url: string;
