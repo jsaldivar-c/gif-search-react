@@ -1,8 +1,16 @@
 import type { Gif } from '../interfaces/gif.interface';
 
 interface Props {
+  /** Gifs to render as cards. */
   gifs: Gif[];
 }
+
+/**
+ * Grid of gif cards showing the image (lazy-loaded), title and dimensions.
+ *
+ * @example
+ * <GifList gifs={gifs} />
+ */
 export const GifList = ({ gifs }: Props) => (
   <div className="gifs-container">
     {gifs.map((gif) => (
