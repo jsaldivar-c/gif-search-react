@@ -2,7 +2,7 @@ html,
 body {
   background-color: #242424;
   color: #fff;
-  font-family: "Montserrat Alternates", sans-serif;
+  font-family: 'Montserrat Alternates', sans-serif;
 }
 
 h1 {
@@ -20,19 +20,19 @@ h1 {
 }
 
 .montserrat-light {
-  font-family: "Montserrat Alternates", sans-serif;
+  font-family: 'Montserrat Alternates', sans-serif;
   font-weight: 300;
   font-style: normal;
 }
 
 .montserrat-regular {
-  font-family: "Montserrat Alternates", sans-serif;
+  font-family: 'Montserrat Alternates', sans-serif;
   font-weight: 400;
   font-style: normal;
 }
 
 .montserrat-bold {
-  font-family: "Montserrat Alternates", sans-serif;
+  font-family: 'Montserrat Alternates', sans-serif;
   font-weight: 700;
   font-style: normal;
 }
@@ -95,21 +95,30 @@ h1 {
 }
 
 .previous-searches-list li {
+  margin-bottom: 20px;
+}
+
+.previous-searches-list button {
   padding: 5px 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
   cursor: pointer;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 400;
   font-style: normal;
   color: #fff;
   background-color: #000;
-  margin-bottom: 20px;
 }
 
-.previous-searches-list li:hover {
+.previous-searches-list button:hover {
   background-color: #333;
   transition: background-color 0.3s ease;
+}
+
+.previous-searches-list button:focus-visible {
+  outline: 2px solid #646cff;
+  outline-offset: 2px;
 }
 
 /* Gifs */

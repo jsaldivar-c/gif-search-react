@@ -14,8 +14,10 @@ export const PreviousSearches = ({
       <h2>{title}</h2>
       <ul className="previous-searches-list">
         {searches.map((term) => (
-          <li onClick={() => onLabelClicked(term)} key={term}>
-            {term}
+          <li key={term}>
+            <button type="button" onClick={() => onLabelClicked(term)}>
+              {term}
+            </button>
           </li>
         ))}
       </ul>
