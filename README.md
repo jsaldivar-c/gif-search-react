@@ -1,78 +1,122 @@
-# React + TypeScript + Vite
+# 🎞️ Buscador de Gifs
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web para buscar gifs usando la [API de Giphy](https://developers.giphy.com/).
+Proyecto del curso de React en el que practico los fundamentos: estado, efectos
+secundarios, consumo de APIs con Axios y organización de componentes con TypeScript.
 
-Currently, two official plugins are available:
+> 📚 **Contexto:** es un proyecto de aprendizaje. Mi objetivo no fue solo que
+> funcione, sino aplicar buenas prácticas desde el inicio y poder explicar el
+> porqué de cada decisión. Al final del README están las decisiones técnicas y
+> lo que mejoraría.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ✨ Funcionalidades
 
-## React Compiler
+- 🔎 Búsqueda con **debounce**: busca automáticamente cuando dejas de escribir (700 ms).
+- ⏎ Búsqueda confirmada con **Enter** o con el botón.
+- 🕘 **Historial** de las últimas 6 búsquedas, sin duplicados, que se conserva al recargar la página.
+- 🔁 Clic en una búsqueda previa para repetirla.
+- 🚀 Carga gifs en tendencia al iniciar, para no arrancar con la pantalla vacía.
+- ⏳ Estados de **carga**, **error** y **sin resultados**.
+- ♿ Búsquedas previas accesibles con teclado (`<button>`) e imágenes con carga diferida.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## 🧰 Tecnologías
 
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
+| Herramienta | Uso |
+| --- | --- |
+| React 19 | Interfaz basada en componentes |
+| TypeScript | Tipado de props, estado y respuestas de la API |
+| Vite | Entorno de desarrollo y build |
+| Axios | Cliente HTTP con instancia configurada |
+| ESLint + Prettier | Calidad y formato del código |
+| pnpm | Gestor de paquetes |
 
-## Expanding the ESLint configuration
+## 🧠 Conceptos de React que practico aquí
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+**`useState`**
+- Un estado por cada dato (`gifs`, `previousSearch`, `isLoading`, `error`, `hasSearched`).
+- Tipado explícito: `useState<Gif[]>([])`.
+- Actualización **funcional** (`setPreviousSearch(prev => ...)`) para no depender de valores desactualizados.
+- Inicialización **perezosa** (`useState(loadPreviousSearches)`) para leer `localStorage` una sola vez.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**`useEffect`**
+- **Debounce** en `SearchBar`: programa la búsqueda y la cancela con la función de limpieza (`clearTimeout`).
+- **Sincronizar con `localStorage`** cuando cambia el historial.
+- **Carga inicial** al montar (`[]`), con una bandera `ignore` en la limpieza para descartar respuestas de un componente desmontado.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+**Otros**
+- `useCallback` para que `fetchGifs` mantenga la misma referencia y el debounce no se reinicie en cada render.
+- Comunicación padre ↔ hijo: los datos bajan por **props**, la información sube llamando **funciones** que el padre entrega (`onQuery`, `onSubmit`, `onLabelClicked`).
+- Renderizado condicional para los estados de carga, error y vacío.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+**Axios**
+- Instancia con `axios.create`: URL base, parámetros comunes y `timeout` de 8 s.
+- Respuesta tipada con genéricos y transformada a un modelo propio (`Gif`) en una capa de acciones, para que los componentes no dependan del formato de Giphy.
 
-```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🗂️ Estructura
 
 ```
+src/
+├── GifsApp.tsx                 # Componente raíz: estado y lógica principal
+├── gifs/
+│   ├── actions/                # Funciones que llaman a la API y transforman datos
+│   ├── api/                    # Instancia configurada de Axios
+│   ├── components/             # GifList, PreviousSearches
+│   └── interfaces/             # Tipos: Gif y respuesta de Giphy
+├── shared/components/          # Componentes reutilizables: CustomHeader, SearchBar
+└── mock-data/                  # Datos de prueba usados durante el desarrollo
+```
+
+## 🚀 Cómo ejecutarlo
+
+1. Instala las dependencias:
+   ```bash
+   pnpm install
+   ```
+2. Consigue una API key gratuita en [developers.giphy.com](https://developers.giphy.com/).
+3. Crea tu archivo de entorno a partir de la plantilla y pega tu key:
+   ```bash
+   cp .env.template .env
+   ```
+   ```env
+   VITE_GIPHY_API_KEY=tu_api_key
+   ```
+   > El archivo `.env` está en `.gitignore`, así que la key no se sube al repositorio.
+   > Si cambias el `.env`, reinicia el servidor de desarrollo.
+4. Inicia la app:
+   ```bash
+   pnpm dev
+   ```
+
+### Scripts
+
+| Comando | Descripción |
+| --- | --- |
+| `pnpm dev` | Servidor de desarrollo |
+| `pnpm build` | Revisa tipos y genera el build de producción |
+| `pnpm preview` | Sirve el build localmente |
+| `pnpm lint` | Ejecuta ESLint |
+
+## 🔍 Decisiones técnicas
+
+- **Separar "buscar" de "guardar en el historial".** El debounce solo busca; el historial se actualiza únicamente al confirmar con Enter o el botón. Así no se guardan términos a medias como "bat" o "batm".
+- **Una sola función para pedir gifs** (`fetchGifs`) en lugar de lógica duplicada en cada manejador.
+- **`try/catch/finally`** en las peticiones: el usuario ve un mensaje claro si algo falla y el indicador de carga nunca se queda pegado.
+- **Capa de acciones y tipos propios.** La respuesta de Giphy se transforma a un modelo `Gif` simple.
+- **`<button>` en vez de `<li onClick>`** para que la navegación por teclado funcione.
+- **La API key va en variables de entorno** y se avisa por consola si falta.
+- **En desarrollo verás dos peticiones iniciales** en la pestaña Network: es `<StrictMode>`, que monta los componentes dos veces a propósito para detectar efectos con problemas. En producción es una sola.
+
+## 🔭 Próximos pasos
+
+Cosas que sé que se pueden mejorar y que quiero abordar:
+
+- Cancelar peticiones antiguas con `AbortController` para evitar que una respuesta lenta pise a una más reciente.
+- Paginación o scroll infinito.
+- Pruebas con Vitest y React Testing Library.
+- Extraer la lógica de búsqueda a un custom hook (`useGifs`).
+- Estilos para los mensajes de carga y error.
+
+## 📄 Licencia
+
+Proyecto educativo sin fines comerciales. Los gifs pertenecen a sus respectivos
+autores y se obtienen a través de la API de Giphy.
