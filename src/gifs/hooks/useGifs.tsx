@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { Gif } from '../interfaces/gif.interface';
 import { getGifsByQuery } from '../actions/get-gifs-by-query.action';
@@ -37,22 +37,33 @@ export const useGifs = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const gifsCache = useRef<Record<string, Gif[]>>({});
 
   /**
    * Searches gifs without touching the history (used by debounce and labels).
+   * Results are cached per term, so repeating a search skips the API call.
    * @param query Search term; normalized with trim and lowercase. Empty is ignored.
    */
   const fetchGifs = useCallback(async (query: string) => {
     const term = query.trim().toLowerCase();
     if (term.length === 0) return;
 
-    setIsLoading(true);
-    setError(null);
     setHasSearched(true);
+    setError(null);
+
+    const cached = gifsCache.current[term];
+    if (cached) {
+      setGifs(cached);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const result = await getGifsByQuery(term);
       setGifs(result);
+      gifsCache.current[term] = result;
     } catch {
       setError(ERROR_MESSAGE);
     } finally {
