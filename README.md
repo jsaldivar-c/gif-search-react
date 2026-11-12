@@ -16,6 +16,7 @@ secundarios, consumo de APIs con Axios y organización de componentes con TypeSc
 - 🕘 **Historial** de las últimas 6 búsquedas, sin duplicados, que se conserva al recargar la página.
 - 🔁 Clic en una búsqueda previa para repetirla.
 - 🚀 Carga gifs en tendencia al iniciar, para no arrancar con la pantalla vacía.
+- ⚡ **Caché de resultados** por término: repetir una búsqueda (por ejemplo "goku") no vuelve a llamar a la API.
 - ⏳ Estados de **carga**, **error** y **sin resultados**.
 - ♿ Búsquedas previas accesibles con teclado (`<button>`) e imágenes con carga diferida.
 
@@ -43,6 +44,13 @@ secundarios, consumo de APIs con Axios y organización de componentes con TypeSc
 - **Sincronizar con `localStorage`** cuando cambia el historial.
 - **Carga inicial** al montar (`[]`), con una bandera `ignore` en la limpieza para descartar respuestas de un componente desmontado.
 
+**`useRef`**
+- Caché de búsquedas (`useRef<Record<string, Gif[]>>({})`): el valor sobrevive entre renders y modificarlo no provoca un re-render. Un objeto normal se reiniciaría en cada render y el linter (`react-hooks/immutability`) avisaría de que se muta después del render.
+
+**Custom hook (`useGifs`)**
+- Encapsula el estado, las peticiones, el historial y la carga inicial, y devuelve solo lo que la interfaz necesita.
+- `GifsApp` queda con la UI únicamente, y la lógica se puede reutilizar y probar por separado.
+
 **Otros**
 - `useCallback` para que `fetchGifs` mantenga la misma referencia y el debounce no se reinicie en cada render.
 - Comunicación padre ↔ hijo: los datos bajan por **props**, la información sube llamando **funciones** que el padre entrega (`onQuery`, `onSubmit`, `onLabelClicked`).
@@ -56,11 +64,12 @@ secundarios, consumo de APIs con Axios y organización de componentes con TypeSc
 
 ```
 src/
-├── GifsApp.tsx                 # Componente raíz: estado y lógica principal
+├── GifsApp.tsx                 # Componente raíz: solo UI, usa el hook useGifs
 ├── gifs/
 │   ├── actions/                # Funciones que llaman a la API y transforman datos
 │   ├── api/                    # Instancia configurada de Axios
 │   ├── components/             # GifList, PreviousSearches
+│   ├── hooks/                  # useGifs: estado, búsqueda, historial y caché
 │   └── interfaces/             # Tipos: Gif y respuesta de Giphy
 ├── shared/components/          # Componentes reutilizables: CustomHeader, SearchBar
 └── mock-data/                  # Datos de prueba usados durante el desarrollo
@@ -100,6 +109,9 @@ src/
 
 - **Separar "buscar" de "guardar en el historial".** El debounce solo busca; el historial se actualiza únicamente al confirmar con Enter o el botón. Así no se guardan términos a medias como "bat" o "batm".
 - **Una sola función para pedir gifs** (`fetchGifs`) en lugar de lógica duplicada en cada manejador.
+- **Lógica en un custom hook.** `useGifs` separa "qué hace la app" de "cómo se ve", lo que deja a `GifsApp` corto y fácil de leer.
+- **Caché con `useRef` para evitar peticiones repetidas.** Se consulta antes de pedir y se guarda al recibir la respuesta. Se eligió `useRef` y no una variable normal porque esta se reiniciaría en cada render. El caché vive mientras la página esté abierta y no se persiste.
+- **JSDoc en inglés** en componentes, props, hook, acciones e interfaces, para que el editor muestre la documentación al usarlos.
 - **`try/catch/finally`** en las peticiones: el usuario ve un mensaje claro si algo falla y el indicador de carga nunca se queda pegado.
 - **Capa de acciones y tipos propios.** La respuesta de Giphy se transforma a un modelo `Gif` simple.
 - **`<button>` en vez de `<li onClick>`** para que la navegación por teclado funcione.
@@ -113,7 +125,6 @@ Cosas que sé que se pueden mejorar y que quiero abordar:
 - Cancelar peticiones antiguas con `AbortController` para evitar que una respuesta lenta pise a una más reciente.
 - Paginación o scroll infinito.
 - Pruebas con Vitest y React Testing Library.
-- Extraer la lógica de búsqueda a un custom hook (`useGifs`).
 - Estilos para los mensajes de carga y error.
 
 ## 📄 Licencia
